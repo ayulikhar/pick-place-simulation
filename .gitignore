@@ -1,0 +1,30 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Virtual environments
+venv/
+.venv/
+env/
+
+# VS Code
+.vscode/
+
+# JetBrains
+.idea/
+
+# Logs
+*.log
+
+# Recordings
+*.mp4
+*.avi
+*.gif
+
+# Images (optional, if generated)
+*.png
+*.jpg
+
+#drift
+.drift/

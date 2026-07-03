@@ -1,0 +1,58 @@
+<mujoco model="panda pick and place scene">
+  <option timestep="0.002" gravity="0 0 -9.81"/>
+
+  <include file="panda.xml"/>
+
+  <statistic center="0.3 0 0.4" extent="1.2"/>
+
+  <visual>
+    <headlight diffuse="0.6 0.6 0.6" ambient="0.3 0.3 0.3" specular="0 0 0"/>
+    <rgba haze="0.15 0.25 0.35 1"/>
+    <global azimuth="120" elevation="-20"/>
+  </visual>
+
+  <asset>
+    <texture type="skybox" builtin="gradient" rgb1="0.3 0.5 0.7" rgb2="0 0 0" width="512" height="3072"/>
+    <texture type="2d" name="groundplane" builtin="checker" mark="edge" rgb1="0.2 0.3 0.4" rgb2="0.1 0.2 0.3"
+             markrgb="0.8 0.8 0.8" width="300" height="300"/>
+    <material name="groundplane" texture="groundplane" texuniform="true" texrepeat="5 5" reflectance="0.2"/>
+    <material name="table_mat" rgba="0.55 0.40 0.25 1" reflectance="0.1"/>
+    <material name="red_cube_mat" rgba="0.9 0.1 0.1 1"/>
+    <material name="green_pad_mat" rgba="0.1 0.8 0.2 1"/>
+  </asset>
+
+  <worldbody>
+    <light pos="0 0 2.5" dir="0 0 -1" directional="true"/>
+    <geom name="floor" size="0 0 0.05" type="plane" material="groundplane"/>
+
+    <!-- Table: top surface sits at z = 0.4 (top thickness 0.02, so top body at z=0.39 with half-height 0.01 reaches 0.40) -->
+    <body name="table" pos="0.4 0 0">
+      <geom name="table_top" type="box" size="0.5 0.4 0.02" pos="0 0 0.38" material="table_mat"/>
+      <geom name="table_leg_fl" type="box" size="0.02 0.02 0.19" pos=" 0.46  0.36 0.19" material="table_mat"/>
+      <geom name="table_leg_fr" type="box" size="0.02 0.02 0.19" pos=" 0.46 -0.36 0.19" material="table_mat"/>
+      <geom name="table_leg_bl" type="box" size="0.02 0.02 0.19" pos="-0.46  0.36 0.19" material="table_mat"/>
+      <geom name="table_leg_br" type="box" size="0.02 0.02 0.19" pos="-0.46 -0.36 0.19" material="table_mat"/>
+    </body>
+
+    <!-- Green target pad (visual only, thin) on table to the side, ~25cm to the +Y from arm base -->
+    <body name="target_pad" pos="0.45 0.25 0.401">
+      <geom name="target_pad_geom" type="box" size="0.05 0.05 0.002" material="green_pad_mat" contype="0" conaffinity="0"/>
+    </body>
+
+    <!-- Small red cube in front of the gripper, sitting on the table top (z = 0.4 + half-size 0.02 = 0.42) -->
+    <body name="red_cube" pos="0.45 0.0 0.42">
+      <freejoint name="red_cube_free"/>
+      <inertial pos="0 0 0" mass="0.05" diaginertia="1.333e-5 1.333e-5 1.333e-5"/>
+      <geom name="red_cube_geom" type="box" size="0.02 0.02 0.02" material="red_cube_mat" friction="1.0 0.05 0.001" condim="4"/>
+    </body>
+  </worldbody>
+
+  <!-- Mount the panda base on top of the table. The included panda.xml defines a body named 'link0'
+       that uses the world as its parent; we override the base position via a keyframe-less approach
+       by relying on the table top z = 0.4. To place the arm ON the table, panda.xml's link0 must spawn
+       at z=0.4. Since panda.xml positions link0 at world origin, we shift it using a key. -->
+  <keyframe>
+    <key name="pick_place_home" qpos="0 -0.785 0 -2.356 0 1.571 0.785 0.04 0.04 0.45 0 0.42 1 0 0 0"
+         ctrl="0 -0.785 0 -2.356 0 1.571 0.785 255"/>
+  </keyframe>
+</mujoco>
