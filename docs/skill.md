@@ -303,10 +303,16 @@ A `<camera name="wrist_cam">` element was placed inside the `<body name="hand">`
 
 ### XML snippet — add inside the `hand` body in `panda.xml`
 
-xml
-<camera name="wrist_cam" pos="0 0 0.1" euler="180 0 0" fovy="60"/>
-+
+```xml
+<camera name="wrist_cam" pos="0 0.04 0.06" euler="180 0 0" fovy="60"/>
+```
+
 Place this line anywhere inside the `<body name="hand">` block (before its closing `</body>` tag).
+
+**Exact values used in this project:**
+- `pos="0 0.04 0.06"` — offset 4 cm along the hand's local Y axis and 6 cm along local Z from the hand-body origin
+- `euler="180 0 0"` — rotates 180° around X so the camera faces downward toward the fingertips
+- `fovy="60"` — 60° vertical field of view
 
 ---
 
@@ -356,3 +362,54 @@ Adjust `pos` (offset from the hand-body origin in the hand-local frame) and `eul
 ### Known issues
 
 - **OpenCV window does not appear** — Confirm that a display is available (`echo $DISPLAY` should return a non-empty value, e.g. `:0`) and that `opencv-python` is installed (`pip show opencv-python`). On headless servers, use a virtual framebuffer (`Xvfb`) or redirect the feed over SSH with X forwarding.
+
+---
+
+## Prompt-driven modifications
+
+When the user gives a natural-language prompt such as *"add a camera to the hand gripper"* or *"enable the wrist camera feed"*, Drift must **not** invent new values. Instead, Drift should:
+
+1. **Locate the relevant section of `skill.md`** — for example, the *Wrist Camera — gripper-mounted camera feed* section above — and read it in full before touching any project file.
+2. **Extract the exact values documented there** — the XML snippet, every Python addition (imports, renderer setup, in-loop code, post-loop teardown), and any listed dependencies — and apply them **verbatim** to the actual project files (`panda.xml`, `pick_place.py`, etc.).
+3. **Do not substitute, paraphrase, or improve** the documented values. If `skill.md` says `pos="0 0.04 0.06"` and `euler="180 0 0"`, those exact strings go into `panda.xml`. If `skill.md` says `CAM_H, CAM_W = 480, 640`, that exact line goes into `pick_place.py`.
+4. **Apply all sub-parts together.** Each feature section in `skill.md` may document changes across multiple files (XML, Python, shell commands). All of them must be applied as a single coherent change — do not apply only the XML part and skip the Python part, or vice versa.
+5. **Install documented dependencies.** If the section lists a `pip install` command, include that step in the instructions returned to the user.
+
+### Why skill.md is the authoritative source of record
+
+`skill.md` was written after the feature was tested and verified to work in this specific project. The values it contains — joint targets, camera offsets, control ranges, physics settings, file paths — were tuned against the actual MuJoCo model and scene. Inventing new values risks breaking constraints (e.g. joint limits, mesh paths, actuator ranges) that are not obvious from the prompt alone.
+
+Any prompt asking to **add**, **modify**, or **re-enable** a feature that already has a section in `skill.md` must be fulfilled by consulting and applying the values already documented here, not by generating new ones from scratch.
+
+### What to do when a feature is NOT documented in skill.md
+
+If the user requests a feature that has no corresponding section in `skill.md`, Drift may generate new values — but should then **append a new section to `skill.md`** documenting the exact values used, following the same format as the existing sections (XML snippet, Python additions, dependency, known issues). This keeps `skill.md` up to date as the project evolves and ensures future prompts for the same feature can be fulfilled from the authoritative record.
+
+---
+
+## How Drift should apply prompts like "add a camera to hand gripper"
+
+When a user gives a prompt that matches something already documented in this file — for example, adding a wrist camera, changing the gripper pose, tuning actuator gains, adjusting phase timings, or modifying control ranges — Drift must **look up the exact values recorded in `skill.md`** and apply those verbatim. Drift must not invent new values, paraphrase the documented ones, or generate a fresh snippet from scratch.
+
+The values stored in this file — `pos`, `euler`, `fovy`, actuator control ranges, joint targets, phase durations, physics settings, file paths, and all associated Python code — are the **ground-truth for this project**. They were verified against the actual MuJoCo model and scene. Substituting different values, even plausible-looking ones, risks violating joint limits, breaking mesh resolution, misaligning the camera, or destabilizing the simulation in ways that are not immediately obvious from the prompt alone.
+
+### Decision rule
+
+1. **Read the prompt carefully** and identify which feature or parameter it refers to.
+2. **Search `skill.md` for a matching section.** If a section exists (e.g. *Wrist Camera — gripper-mounted camera feed*), that section is the authoritative source. Read it in full.
+3. **Extract every sub-part documented in that section** — XML snippets, Python imports, in-loop code, post-loop teardown, dependency install commands — and apply all of them together as a single coherent change. Do not apply only part of a documented feature.
+4. **Copy the recorded values verbatim.** If `skill.md` says `pos="0 0.04 0.06"` and `euler="180 0 0"`, those exact strings go into `panda.xml`. If it says `CAM_H, CAM_W = 480, 640`, that exact line goes into `pick_place.py`. No substitutions, no improvements.
+5. **If no matching section exists**, Drift may generate new values — but must then append a new section to `skill.md` in the same format (XML snippet, Python additions, dependency, known issues) so the feature is recorded for future prompts.
+
+### Why this matters
+
+`skill.md` is not a general reference document — it is a project-specific record of what was actually tested and confirmed to work in *this* simulation, with *this* robot model, on *this* scene. A prompt like *"add a camera to the hand gripper"* or *"re-enable the wrist camera feed"* is a request to reproduce a known-good configuration, not an invitation to design a new one. Treating `skill.md` as the authoritative source ensures that repeated or re-applied prompts always produce the same correct result, and that the project remains in a consistent, reproducible state.
+
+### After applying the camera prompt
+
+After all camera-related changes have been applied to `panda.xml` and `pick_place.py`, Drift must also:
+
+1. **Run the simulation** — launch `pick_place.py` so the MuJoCo passive viewer opens and the pick-and-place sequence begins.
+2. **Open the camera viewer** — the `cv2.imshow("Wrist Camera", ...)` window should appear automatically once `pick_place.py` is running, because the OpenCV rendering loop is already wired into the main simulation loop. No separate launch step is needed; both windows come up together when `python3 pick_place.py` is executed.
+
+If the OpenCV window does not appear, refer to the *Known issues* entry under the *Wrist Camera* section above.
