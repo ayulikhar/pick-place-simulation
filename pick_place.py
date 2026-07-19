@@ -2,6 +2,7 @@ import mujoco
 import mujoco.viewer
 import time
 import numpy as np
+import cv2
 
 # Load scene
 model_path = "/home/ayu/Franka_panda/panda_pick_place_scene.xml"
@@ -15,6 +16,11 @@ cube_joint_id = model.body_jntadr[cube_body_id]
 cube_qposadr = model.jnt_qposadr[cube_joint_id]
 data.qpos[cube_qposadr:cube_qposadr + 3] = CUBE_POSITION
 mujoco.mj_forward(model, data)
+
+# Wrist camera renderer setup
+renderer = mujoco.Renderer(model, height=480, width=640)
+WRIST_CAM_NAME = "wrist_cam"
+WRIST_CAM_WINDOW = "Wrist Camera"
 
 # Joint targets for each phase of the pick-and-place sequence.
 # Order: [joint1, joint2, joint3, joint4, joint5, joint6, joint7]
@@ -113,6 +119,7 @@ with mujoco.viewer.launch_passive(model, data) as viewer:
         viewer.sync()
 
     last_change = time.time()
+    last_render = time.time()
 
     while viewer.is_running():
         mujoco.mj_step(model, data)
@@ -123,3 +130,14 @@ with mujoco.viewer.launch_passive(model, data) as viewer:
             last_change = time.time()
 
         viewer.sync()
+
+
+        if time.time() - last_render > 0.033:
+            renderer.update_scene(data, camera=WRIST_CAM_NAME)
+            pixels = renderer.render()
+            frame = cv2.cvtColor(pixels, cv2.COLOR_RGB2BGR)
+            cv2.imshow(WRIST_CAM_WINDOW, frame)
+            cv2.waitKey(1)
+            last_render = time.time()
+
+cv2.destroyAllWindows()

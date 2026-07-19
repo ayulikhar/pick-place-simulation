@@ -290,3 +290,69 @@ x=0.5, y=0.0, z=0.03
 - **Cube not at expected position** — `CUBE_POSITION` in `pick_place.py` and the `pos` attribute of the `cube` body in `panda_pick_place_scene.xml` must match exactly.
 - **Mesh not found on load** — Keep `assets/` in the same directory as `panda.xml`. Do not add a `<compiler meshdir=...>` override in the scene file.
 - **MuJoCo version error** — Requires MuJoCo ≥ 2.3.3.
+
+---
+
+## Wrist Camera — gripper-mounted camera feed
+
+### What was added
+
+A `<camera name="wrist_cam">` element was placed inside the `<body name="hand">` block in `panda.xml`, with `pos` and `euler` tuned to point the camera downward toward the fingers. This gives a first-person view from the gripper during the pick-and-place sequence.
+
+---
+
+### XML snippet — add inside the `hand` body in `panda.xml`
+
+xml
+<camera name="wrist_cam" pos="0 0 0.1" euler="180 0 0" fovy="60"/>
++
+Place this line anywhere inside the `<body name="hand">` block (before its closing `</body>` tag).
+
+---
+
+### Python additions — `pick_place.py`
+
+**New import** (add near the top with the other imports):
+
+python
+import cv2
++
+**Renderer setup** (add before the `with mujoco.viewer.launch_passive(...)` line):
+
+python
+CAM_H, CAM_W = 480, 640
+renderer = mujoco.Renderer(model, height=CAM_H, width=CAM_W)
++
+**Inside the `while viewer.is_running():` loop**, after `mujoco.mj_step(model, data)`:
+
+python
+renderer.update_scene(data, camera="wrist_cam")
+pixels = renderer.render()
+cv2.imshow("Wrist Camera", cv2.cvtColor(pixels, cv2.COLOR_RGB2BGR))
+cv2.waitKey(1)
++
+**After the loop ends** (after the `with` block closes):
+
+python
+cv2.destroyAllWindows()
++
+---
+
+### Dependency
+
+`opencv-python` must be installed if not already present:
+
+bash
+pip install opencv-python
++
+---
+
+### Tuning the camera pose
+
+Adjust `pos` (offset from the hand-body origin in the hand-local frame) and `euler` (rotation in degrees, applied as extrinsic XYZ) in `panda.xml` to change the viewing angle. `euler="180 0 0"` flips the camera so it faces downward along the hand's −Z axis, looking toward the fingertips. `fovy` controls the vertical field of view in degrees; smaller values zoom in, larger values widen the view.
+
+---
+
+### Known issues
+
+- **OpenCV window does not appear** — Confirm that a display is available (`echo $DISPLAY` should return a non-empty value, e.g. `:0`) and that `opencv-python` is installed (`pip show opencv-python`). On headless servers, use a virtual framebuffer (`Xvfb`) or redirect the feed over SSH with X forwarding.
