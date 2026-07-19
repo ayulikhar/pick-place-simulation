@@ -21,18 +21,23 @@ mujoco.mj_forward(model, data)
 # joint4 ctrlrange is (-3.0718, -0.0698) so it must stay negative.
 # joint6 ctrlrange is (-0.0175, 3.7525) so it must stay positive.
 ARM_TARGETS = {
+    "NEUTRAL":          [0.0, -0.785, 0.0, -2.356, 0.0, 1.571, 0.785],
     "MOVE_ABOVE_CUBE":  [0.0,  0.30, 0.0, -2.2, 0.0, 2.5, 0.785],
-    "LOWER":            [0.0,  0.65, 0.0, -2.0, 0.0, 2.6, 0.785],
-    "GRASP":            [0.0,  0.65, 0.0, -2.0, 0.0, 2.6, 0.785],
+    # Centers the fingertip pads on the cube at [0.50, 0.00, 0.03].
+    "LOWER":            [0.0,  0.5134, 0.0, -2.1911, 0.0, 2.4648, 0.785],
+    "GRASP":            [0.0,  0.5134, 0.0, -2.1911, 0.0, 2.4648, 0.785],
     "LIFT":             [0.0,  0.30, 0.0, -2.2, 0.0, 2.5, 0.785],
     "MOVE_TO_TARGET":   [0.5,  0.30, 0.0, -2.2, 0.0, 2.5, 0.785],
     "LOWER_TO_TARGET":  [0.5,  0.65, 0.0, -2.0, 0.0, 2.6, 0.785],
     "RELEASE":          [0.5,  0.65, 0.0, -2.0, 0.0, 2.6, 0.785],
+    "LIFT_GRIPPER":     [0.5,  0.45, 0.0, -2.1, 0.0, 2.55, 0.785],
+    "LIFT_BEFORE_HOME": [0.5,  0.20, 0.0, -2.2, 0.0, 2.5, 0.785],
     "HOME":             [0.0,  0.0,  0.0, -1.57, 0.0, 1.57, 0.785],
 }
 
 # Gripper actuator8 ctrlrange is 0..255. 255 = open, 0 = closed.
 GRIPPER_TARGETS = {
+    "NEUTRAL":          255,
     "MOVE_ABOVE_CUBE":  255,
     "LOWER":            255,
     "GRASP":              0,
@@ -40,22 +45,28 @@ GRIPPER_TARGETS = {
     "MOVE_TO_TARGET":     0,
     "LOWER_TO_TARGET":    0,
     "RELEASE":          255,
+    "LIFT_GRIPPER":     255,
+    "LIFT_BEFORE_HOME": 255,
     "HOME":             255,
 }
 
 # How long to hold each phase (seconds)
 PHASE_DURATIONS = {
-    "MOVE_ABOVE_CUBE":  2.5,
-    "LOWER":            2.0,
-    "GRASP":            1.5,
-    "LIFT":             2.0,
-    "MOVE_TO_TARGET":   2.5,
-    "LOWER_TO_TARGET":  2.0,
-    "RELEASE":          1.0,
-    "HOME":             3.0,
+    "NEUTRAL":          5.0,
+    "MOVE_ABOVE_CUBE":  5.0,
+    "LOWER":            4.0,
+    "GRASP":            3.0,
+    "LIFT":             4.0,
+    "MOVE_TO_TARGET":   5.0,
+    "LOWER_TO_TARGET":  4.0,
+    "RELEASE":          2.0,
+    "LIFT_GRIPPER":     3.0,
+    "LIFT_BEFORE_HOME": 4.0,
+    "HOME":             6.0,
 }
 
 states = [
+    "NEUTRAL",
     "MOVE_ABOVE_CUBE",
     "LOWER",
     "GRASP",
@@ -63,6 +74,8 @@ states = [
     "MOVE_TO_TARGET",
     "LOWER_TO_TARGET",
     "RELEASE",
+    "LIFT_GRIPPER",
+    "LIFT_BEFORE_HOME",
     "HOME",
 ]
 
@@ -90,7 +103,15 @@ def next_state():
 print(f"Starting in {states[current_state]}")
 apply_targets(states[current_state])
 
+COOLDOWN_SECS = 1.0  # wait before the first phase begins
+
 with mujoco.viewer.launch_passive(model, data) as viewer:
+    print(f"Cooldown: waiting {COOLDOWN_SECS:.0f}s before starting...")
+    cooldown_start = time.time()
+    while time.time() - cooldown_start < COOLDOWN_SECS:
+        mujoco.mj_step(model, data)
+        viewer.sync()
+
     last_change = time.time()
 
     while viewer.is_running():
