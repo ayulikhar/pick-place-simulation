@@ -152,8 +152,7 @@ class PandaIKController:
         pos, mat = self._get_ee_pose(self.data_ik)
         self.target_quat = np.zeros(4)
         mujoco.mju_mat2Quat(self.target_quat, mat.flatten())
-        # offset expressed in the EE's local frame so it stays valid even
-        # if later orientations drift slightly from this calibration pose
+        # expressed offset in the EE local frame 
         self.fingertip_offset_local = mat.T @ (CALIBRATION_FINGERTIP_TARGET - pos)
         print(f"[IK] Calibrated fingertip offset (local frame): "
               f"{self.fingertip_offset_local}")
