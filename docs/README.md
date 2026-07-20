@@ -5,11 +5,14 @@ This repository features a modular physics simulation environment designed to va
 
 
 # Key Technical Features
-Kinematic & Physics Configuration: Configured the 7-DOF manipulator's URDF/SDF files, precisely defining link inertias, joint limits, and friction constraints to ensure realistic rigid-body dynamics in Gazebo/MuJoCo.
+## Kinematic & Physics Configuration: 
+Configured the 7-DOF manipulator's URDF/SDF files, precisely defining link inertias, joint limits, and friction constraints to ensure realistic rigid-body dynamics in Gazebo/MuJoCo.
 
-Trajectory & Motion Planning: Implemented smooth joint-space trajectory generation and gripper control sequences to execute reliable, repeatable pick-and-place routines.
+## Trajectory & Motion Planning: 
+Implemented smooth joint-space trajectory generation and gripper control sequences to execute reliable, repeatable pick-and-place routines.
 
-Closed-Loop Telemetry: Integrated sensor and joint-state plugins (joint_state_broadcaster, robot_state_publisher) to stream real-time telemetry data for execution monitoring.
+## Closed-Loop Telemetry: 
+Integrated sensor and joint-state plugins (joint_state_broadcaster, robot_state_publisher) to stream real-time telemetry data for execution monitoring.
 
 # Workspace Structure
 <pre>
@@ -29,6 +32,14 @@ Closed-Loop Telemetry: Integrated sensor and joint-state plugins (joint_state_br
 ├── LICENSE
 └── README.md
 </pre>
+
+## Agentic Replication & Verification Architecture
+This repository is structurally optimized to support automated, agentic verification workflows. The root directory contains dedicated operational frameworks designed for autonomous software agents to interpret, parse, and execute simulation environments dynamically:
+
+**`DRIFT.md`**: Outlines system environment directives, enabling an autonomous agent to initialize the workspace dependencies, handle file paths, and spin up the Franka Panda environment without manual configuration.
+**`skill.md`**: Documents precise control action schemas (e.g., visual alignments, path segments, and gripper tracking parameters) used to guide the agent through replicating exact manipulation steps across external test workspaces.
+**`timing_backup.md`**: Provides the baseline execution logs and control loop step-time thresholds required to maintain deterministic physics updates during automated test cycles.
+
 
 # Franka Emika Panda Description (MJCF)
 
