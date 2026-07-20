@@ -21,8 +21,8 @@ renderer = mujoco.Renderer(model, height=480, width=640)
 WRIST_CAM_NAME = "wrist_cam"
 WRIST_CAM_WINDOW = "Wrist Camera"
 
-# joint4 range must stay negative.
-# joint6 range must stay positive.
+# joint4 range must stay negative
+# joint6 range must stay positive
 ARM_TARGETS = {
     "NEUTRAL":          [0.0, -0.785, 0.0, -2.356, 0.0, 1.571, 0.785],
     "MOVE_ABOVE_CUBE":  [0.0,  0.30, 0.0, -2.2, 0.0, 2.5, 0.785], # cube at [0.50, 0.00, 0.03]
