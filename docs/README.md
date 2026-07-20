@@ -1,7 +1,8 @@
 # Project Overview
 This repository features a modular physics simulation environment designed to validate joint-space and task-space trajectory control for the 7-DOF Franka Emika Panda manipulator. The project focuses on executing precision pick-and-place manipulation pipelines, validating URDF joint mechanics, and handling rigid-body contact dynamics in simulation before hardware deployment.
 # Demo
-https://github.com/user-attachments/assets/73549304-fc56-45fc-a7eb-44e38bfb8a37
+<img width="800" height="450" alt="ezgif com-speed" src="https://github.com/user-attachments/assets/646f177f-a676-4f26-a0f5-74d4e4e8129b" />
+
 
 # Key Technical Features
 Kinematic & Physics Configuration: Configured the 7-DOF manipulator's URDF/SDF files, precisely defining link inertias, joint limits, and friction constraints to ensure realistic rigid-body dynamics in Gazebo/MuJoCo.
