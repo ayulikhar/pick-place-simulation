@@ -5,14 +5,9 @@ This repository features a modular physics simulation environment designed to va
 
 
 # Key Technical Features
-## Kinematic & Physics Configuration: 
-Configured the 7-DOF manipulator's URDF/SDF files, precisely defining link inertias, joint limits, and friction constraints to ensure realistic rigid-body dynamics in Gazebo/MuJoCo.
-
-## Trajectory & Motion Planning: 
-Implemented smooth joint-space trajectory generation and gripper control sequences to execute reliable, repeatable pick-and-place routines.
-
-## Closed-Loop Telemetry: 
-Integrated sensor and joint-state plugins (joint_state_broadcaster, robot_state_publisher) to stream real-time telemetry data for execution monitoring.
+- Kinematic & Physics Configuration: Configured the 7-DOF manipulator's URDF/SDF files, precisely defining link inertias, joint limits, and friction constraints to ensure realistic rigid-body dynamics in Gazebo/MuJoCo.
+- Trajectory & Motion Planning: Implemented smooth joint-space trajectory generation and gripper control sequences to execute reliable, repeatable pick-and-place routines.
+- Closed-Loop Telemetry: Integrated sensor and joint-state plugins (joint_state_broadcaster, robot_state_publisher) to stream real-time telemetry data for execution monitoring.
 
 # Workspace Structure
 <pre>
