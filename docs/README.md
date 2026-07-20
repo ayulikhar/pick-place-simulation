@@ -12,6 +12,7 @@ Trajectory & Motion Planning: Implemented smooth joint-space trajectory generati
 Closed-Loop Telemetry: Integrated sensor and joint-state plugins (joint_state_broadcaster, robot_state_publisher) to stream real-time telemetry data for execution monitoring.
 
 # Workspace Structure
+<pre>
 ├── assets/
 │   ├── hand.xml
 │   └── panda.xml
@@ -27,6 +28,7 @@ Closed-Loop Telemetry: Integrated sensor and joint-state plugins (joint_state_br
 ├── .gitignore
 ├── LICENSE
 └── README.md
+</pre>
 
 # Franka Emika Panda Description (MJCF)
 
