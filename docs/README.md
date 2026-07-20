@@ -1,3 +1,18 @@
+# Project Overview
+This repository features a modular physics simulation environment designed to validate joint-space and task-space trajectory control for the 7-DOF Franka Emika Panda manipulator. The project focuses on executing precision pick-and-place manipulation pipelines, validating URDF joint mechanics, and handling rigid-body contact dynamics in simulation before hardware deployment.
+# Demo
+Place a high-quality GIF or a video link right here showing the Panda arm smoothly picking up the object, generating a collision-free path, and stacking/placing it.
+
+# Key Technical Features
+Kinematic & Physics Configuration: Configured the 7-DOF manipulator's URDF/SDF files, precisely defining link inertias, joint limits, and friction constraints to ensure realistic rigid-body dynamics in Gazebo/MuJoCo.
+
+Trajectory & Motion Planning: Implemented smooth joint-space trajectory generation and gripper control sequences to execute reliable, repeatable pick-and-place routines.
+
+Closed-Loop Telemetry: Integrated sensor and joint-state plugins (joint_state_broadcaster, robot_state_publisher) to stream real-time telemetry data for execution monitoring.
+
+# Workspace Structure
+
+
 # Franka Emika Panda Description (MJCF)
 
 > [!IMPORTANT]
