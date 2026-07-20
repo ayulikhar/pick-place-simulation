@@ -4,12 +4,11 @@ import time
 import numpy as np
 import cv2
 
-# Load scene
+# load scene
 model_path = "/home/ayu/Franka_panda/panda_pick_place_scene.xml"
 model = mujoco.MjModel.from_xml_path(model_path)
 data = mujoco.MjData(model)
 
-# Keep the runtime cube pose synchronized with panda_pick_place_scene.xml.
 CUBE_POSITION = np.array([0.5, 0.0, 0.03])
 cube_body_id = model.body("cube").id
 cube_joint_id = model.body_jntadr[cube_body_id]
@@ -17,19 +16,16 @@ cube_qposadr = model.jnt_qposadr[cube_joint_id]
 data.qpos[cube_qposadr:cube_qposadr + 3] = CUBE_POSITION
 mujoco.mj_forward(model, data)
 
-# Wrist camera renderer setup
+# wrist camera setup
 renderer = mujoco.Renderer(model, height=480, width=640)
 WRIST_CAM_NAME = "wrist_cam"
 WRIST_CAM_WINDOW = "Wrist Camera"
 
-# Joint targets for each phase of the pick-and-place sequence.
-# Order: [joint1, joint2, joint3, joint4, joint5, joint6, joint7]
-# joint4 ctrlrange is (-3.0718, -0.0698) so it must stay negative.
-# joint6 ctrlrange is (-0.0175, 3.7525) so it must stay positive.
+# joint4 range must stay negative.
+# joint6 range must stay positive.
 ARM_TARGETS = {
     "NEUTRAL":          [0.0, -0.785, 0.0, -2.356, 0.0, 1.571, 0.785],
-    "MOVE_ABOVE_CUBE":  [0.0,  0.30, 0.0, -2.2, 0.0, 2.5, 0.785],
-    # Centers the fingertip pads on the cube at [0.50, 0.00, 0.03].
+    "MOVE_ABOVE_CUBE":  [0.0,  0.30, 0.0, -2.2, 0.0, 2.5, 0.785], # cube at [0.50, 0.00, 0.03]
     "LOWER":            [0.0,  0.5134, 0.0, -2.1911, 0.0, 2.4648, 0.785],
     "GRASP":            [0.0,  0.5134, 0.0, -2.1911, 0.0, 2.4648, 0.785],
     "LIFT":             [0.0,  0.30, 0.0, -2.2, 0.0, 2.5, 0.785],
@@ -41,7 +37,7 @@ ARM_TARGETS = {
     "HOME":             [0.0,  0.0,  0.0, -1.57, 0.0, 1.57, 0.785],
 }
 
-# Gripper actuator8 ctrlrange is 0..255. 255 = open, 0 = closed.
+# gripper values: 255 = open, 0 = closed.
 GRIPPER_TARGETS = {
     "NEUTRAL":          255,
     "MOVE_ABOVE_CUBE":  255,
@@ -56,7 +52,6 @@ GRIPPER_TARGETS = {
     "HOME":             255,
 }
 
-# How long to hold each phase (seconds)
 PHASE_DURATIONS = {
     "NEUTRAL":          5.0,
     "MOVE_ABOVE_CUBE":  5.0,
@@ -91,10 +86,8 @@ current_state = 0
 def apply_targets(state_name):
     """Write the joint + gripper targets for this phase into data.ctrl."""
     arm = ARM_TARGETS[state_name]
-    # actuator1..actuator7 drive the 7 arm joints
     for i in range(7):
         data.ctrl[i] = arm[i]
-    # actuator8 drives the gripper tendon
     data.ctrl[7] = GRIPPER_TARGETS[state_name]
 
 
@@ -109,7 +102,7 @@ def next_state():
 print(f"Starting in {states[current_state]}")
 apply_targets(states[current_state])
 
-COOLDOWN_SECS = 1.0  # wait before the first phase begins
+COOLDOWN_SECS = 1.0  # added a cooldown to avoid overshoot when opening 
 
 with mujoco.viewer.launch_passive(model, data) as viewer:
     print(f"Cooldown: waiting {COOLDOWN_SECS:.0f}s before starting...")
