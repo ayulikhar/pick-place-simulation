@@ -12,21 +12,18 @@ Trajectory & Motion Planning: Implemented smooth joint-space trajectory generati
 Closed-Loop Telemetry: Integrated sensor and joint-state plugins (joint_state_broadcaster, robot_state_publisher) to stream real-time telemetry data for execution monitoring.
 
 # Workspace Structure
-├── assets/                     # Model definitions and meshes (MJCF)
-
+├── assets/
 │   ├── hand.xml
-
 │   └── panda.xml
-
-├── worlds/                     # Environment layout & task setups
+├── worlds/
 │   ├── scene.xml
 │   └── panda_pick_place_scene.xml
-├── scripts/                    # Active execution logic
+├── scripts/
 │   ├── pick_place.py
 │   └── stack_cubes.py
-├── docs/                       # Media, GIFs, or implementation notes
-├── test/                       # Routine or sandbox code
-├── archive/                    # Old/deprecated versions
+├── docs/
+├── test/
+├── archive/
 ├── .gitignore
 ├── LICENSE
 └── README.md
