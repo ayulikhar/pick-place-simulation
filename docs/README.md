@@ -13,8 +13,11 @@ Closed-Loop Telemetry: Integrated sensor and joint-state plugins (joint_state_br
 
 # Workspace Structure
 ├── assets/                     # Model definitions and meshes (MJCF)
+
 │   ├── hand.xml
+
 │   └── panda.xml
+
 ├── worlds/                     # Environment layout & task setups
 │   ├── scene.xml
 │   └── panda_pick_place_scene.xml
