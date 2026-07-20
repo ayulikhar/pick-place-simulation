@@ -1,40 +1,3 @@
-"""
-Autonomous Franka Panda cube-stacking demo.
-
-The robot picks up cube, cube2 and cube3 (defined in
-panda_pick_place_scene.xml) one at a time and stacks them neatly on top of
-target_pad, using Jacobian (damped least-squares) inverse kinematics for
-smooth Cartesian motion instead of hand-tuned joint targets.
-
---------------------------------------------------------------------------
-IMPORTANT NOTE ON ASSUMPTIONS
---------------------------------------------------------------------------
-panda.xml itself (included by panda_pick_place_scene.xml) was not
-available to inspect, so a few names had to be assumed from the
-conventions used in the original pick_place.py you provided:
-
-  * Arm joints are named "joint1" .. "joint7"
-  * Arm/gripper actuators are named "actuator1" .. "actuator8"
-    (actuator1-7 -> joint1-7 position servos, actuator8 -> gripper,
-    ctrlrange 0-255, 0 = closed, 255 = open)
-  * There is some end-effector reference frame near the hand. The script
-    tries a list of common site names first ("attachment_site", "tcp",
-    "ee_site", "gripper_site", "tool_site"), and falls back to the body
-    named "hand" if none of those sites exist.
-
-If any of these names don't match your panda.xml, edit the CONFIG block
-right below the imports -- everything else adapts automatically.
-
-The script also self-calibrates the offset between that reference frame
-and the actual point that contacts the cube. It does this by driving the
-arm to the exact joint configuration your original pick_place.py used for
-GRASP (which was hand-tuned so the fingertips center on the cube at
-[0.5, 0, 0.03]) and measuring the gap. That measured offset is then reused
-for every IK target for the rest of the run, so you do NOT need to know
-the exact hand geometry for this to work.
---------------------------------------------------------------------------
-"""
-
 import os
 import time
 
@@ -48,9 +11,7 @@ try:
 except ImportError:
     HAVE_CV2 = False
 
-
-# ============================== CONFIG =====================================
-
+# config
 _here = os.path.dirname(os.path.abspath(__file__))
 _local_candidate = os.path.join(_here, "panda_pick_place_scene.xml")
 MODEL_PATH = _local_candidate if os.path.exists(_local_candidate) \
@@ -65,20 +26,16 @@ GRIPPER_CLOSED = 0.0
 EE_SITE_CANDIDATES = ["attachment_site", "tcp", "ee_site", "gripper_site", "tool_site"]
 EE_BODY_FALLBACK = "hand"
 
-# Joint configuration your original script used to grasp the cube at
-# [0.5, 0, 0.03]. Used only once, at startup, to self-calibrate the
-# fingertip offset -- see module docstring.
+# Joint configuration to grasp the cube at [0.5, 0, 0.03].
 CALIBRATION_JOINTS = [0.0, 0.5134, 0.0, -2.1911, 0.0, 2.4648, 0.785]
 CALIBRATION_FINGERTIP_TARGET = np.array([0.50, 0.00, 0.03])
 
 CUBE_BODY_NAMES = ["cube", "cube2", "cube3"]
 TARGET_PAD_BODY = "target_pad"
 
-CUBE_HALF_SIZE = 0.02          # from panda_pick_place_scene.xml geom size
-TRANSIT_HEIGHT = 0.25          # absolute world z used for all "above" waypoints
-SETTLE_TIME = 1.0              # let cubes settle under gravity before planning
-
-# ============================================================================
+CUBE_HALF_SIZE = 0.02          # cube geom size
+TRANSIT_HEIGHT = 0.25           
+SETTLE_TIME = 1.0              # ensure no overshoot
 
 
 def smoothstep(x):
@@ -92,7 +49,7 @@ class PandaIKController:
         self.model = model
         self.data = data
 
-        # --- resolve arm joints / actuators -----------------------------
+        # resolve arm joints and actuators 
         try:
             self.arm_qposadr = [model.joint(n).qposadr[0] for n in ARM_JOINT_NAMES]
             self.arm_dofadr = [model.joint(n).dofadr[0] for n in ARM_JOINT_NAMES]
@@ -119,7 +76,7 @@ class PandaIKController:
             [model.jnt_range[j] for j in self.arm_jntid]
         )
 
-        # --- resolve end-effector reference frame ------------------------
+        # resolve end-effector reference frame 
         self.ee_mode = None
         self.ee_id = None
         for name in EE_SITE_CANDIDATES:
@@ -143,8 +100,7 @@ class PandaIKController:
                     "EE_BODY_FALLBACK in the CONFIG block to match panda.xml."
                 )
 
-        # scratch MjData used for IK iterations, so we never disturb the
-        # live simulation state while solving.
+        # scratch MjData used for IK iterations so we never disturb the live simulation state while solving.
         self.data_ik = mujoco.MjData(model)
         self.data_ik.qpos[:] = data.qpos[:]
 
@@ -152,7 +108,6 @@ class PandaIKController:
         self.target_quat = np.array([1.0, 0.0, 0.0, 0.0])
         self._calibrate()
 
-    # ------------------------------------------------------------------ #
     def _set_arm_qpos(self, data, q):
         for adr, val in zip(self.arm_qposadr, q):
             data.qpos[adr] = val
@@ -186,7 +141,7 @@ class PandaIKController:
                 q[i] = np.clip(q[i], lo, hi)
         return q
 
-    # ------------------------------------------------------------------ #
+    # ------------------------- #
     def _calibrate(self):
         """Self-calibrate the world-frame gap between the EE reference
         frame and the point that actually contacts the cube, using the
@@ -203,7 +158,7 @@ class PandaIKController:
         print(f"[IK] Calibrated fingertip offset (local frame): "
               f"{self.fingertip_offset_local}")
 
-    # ------------------------------------------------------------------ #
+    # ------------------------ #
     def solve_ik(self, fingertip_target, q_guess, max_iters=200,
                  tol=1e-4, damping=0.05):
         """Damped least-squares IK. Solves for the 7 arm joint angles that
@@ -218,11 +173,7 @@ class PandaIKController:
 
         for _ in range(max_iters):
             self._set_arm_qpos(self.data_ik, q)
-            # NOTE: mj_forward (not mj_kinematics) is required here because
-            # mj_jacBody / mj_jacSite read from data structures that only
-            # mj_forward (fwdPosition) populates. Using mj_kinematics alone
-            # leaves the Jacobian at zero, so dq collapses to zero and the
-            # arm never moves off the neutral pose.
+            # NOTE: mj_forward is required because mj_jacBody and mj_jacSite read from data structures that only mj_forward populates. Using mj_kinematics alone leaves the Jacobian at zero, so dq collapses to zero and the arm never moves off the neutral pose.
             mujoco.mj_forward(self.model, self.data_ik)
             cur_pos, cur_mat = self._get_ee_pose(self.data_ik)
 
@@ -250,7 +201,7 @@ class PandaIKController:
 
         return q
 
-    # ------------------------------------------------------------------ #
+    # ----------------------- #
     def current_arm_qpos(self):
         return self._get_arm_qpos(self.data)
 
@@ -349,23 +300,23 @@ def build_stack_sequence(model, data, ik: PandaIKController, ex: Executor):
         print(f"\n[SEQ] --- Cube {k + 1}/{len(cube_ids)} "
               f"({CUBE_BODY_NAMES[k]}) at {cube_pos} -> stack z={place_z:.4f} ---")
 
-        # 1. move above the cube, gripper open
+        # move above the cube, gripper open
         ex.move_to(above_cube, GRIPPER_OPEN, duration=2.5)
-        # 2. descend onto the cube, still open
+        # move down onto the cube, still open
         ex.move_to(cube_pos, GRIPPER_OPEN, duration=1.5)
-        # 3. close gripper to grasp
+        # close gripper to grasp
         ex.move_to(cube_pos, GRIPPER_CLOSED, duration=1.0)
         ex.hold(0.5)
-        # 4. lift straight up
+        # lift up
         ex.move_to(above_cube, GRIPPER_CLOSED, duration=1.5)
-        # 5. transit above the stack location
+        # move above the stack location
         ex.move_to(above_place, GRIPPER_CLOSED, duration=2.5)
-        # 6. descend to the stacking height
+        # descend to the stacking height
         ex.move_to(place_xyz, GRIPPER_CLOSED, duration=1.5)
-        # 7. release
+        # release
         ex.move_to(place_xyz, GRIPPER_OPEN, duration=1.0)
         ex.hold(0.5)
-        # 8. retreat upward
+        # rise upward
         ex.move_to(above_place, GRIPPER_OPEN, duration=1.5)
 
 
@@ -377,8 +328,7 @@ def main():
 
     ik = PandaIKController(model, data)
 
-    # Start from a safe, known joint configuration (same family the
-    # original script used) instead of the zero pose.
+    # Start from a safe, known joint configuration instead of the zero pose.
     neutral = [0.0, -0.785, 0.0, -2.356, 0.0, 1.571, 0.785]
     ik._set_arm_qpos(data, neutral)
     ik.set_ctrl(neutral, GRIPPER_OPEN)
@@ -386,9 +336,7 @@ def main():
 
     wrist_cam_name = None
     renderer = None
-    # Camera preview disabled: the offscreen Renderer competes with the
-    # passive viewer's OpenGL context on Wayland/NVIDIA and causes a
-    # native crash. The stacking logic does not depend on the preview.
+    # Camera preview disabled since we dont need it,
     print("[MAIN] Camera preview disabled (offscreen renderer skipped).")
 
     with mujoco.viewer.launch_passive(model, data) as viewer:
