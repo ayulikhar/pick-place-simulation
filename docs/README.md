@@ -11,7 +11,20 @@ Trajectory & Motion Planning: Implemented smooth joint-space trajectory generati
 Closed-Loop Telemetry: Integrated sensor and joint-state plugins (joint_state_broadcaster, robot_state_publisher) to stream real-time telemetry data for execution monitoring.
 
 # Workspace Structure
-
+├── assets/                    # MuJoCo XML models, meshes, and scene files
+│   ├── hand.xml
+│   ├── panda.xml
+│   ├── scene.xml
+│   └── panda_pick_place_scene.xml
+├── scripts/                   # Executable Python scripts and control logic
+│   ├── pick_place.py
+│   └── stack_cubes.py
+├── docs/                      # Documentation, architecture notes, or media (GIFs/Videos)
+├── test/                      # Experimental or unit testing scripts
+├── archive/                   # Deprecated or old code versions
+├── .gitignore
+├── LICENSE
+└── README.md                  # Your clean documentation
 
 # Franka Emika Panda Description (MJCF)
 
