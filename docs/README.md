@@ -1,4 +1,4 @@
-# 🤖 Franka Panda Pick-and-Place Simulation
+# Franka Panda Pick-and-Place Simulation
 
 > **Physics-grounded robotic manipulation using a 7-DOF Franka Panda in MuJoCo.**
 
@@ -21,7 +21,7 @@ The environment provides a controlled testbed for experimenting with **motion pl
 # Demo
 <img width="800" height="450" alt="ezgif com-speed" src="https://github.com/user-attachments/assets/646f177f-a676-4f26-a0f5-74d4e4e8129b" />
 
-## 🔬 Key Components
+## Key Components
 
 * **Franka Panda** — 7-DOF manipulator with simulated gripper
 * **MuJoCo / MJCF** — rigid-body dynamics and contact simulation
@@ -31,7 +31,7 @@ The environment provides a controlled testbed for experimenting with **motion pl
 * **Cube Stacking** — sequential object placement experiment
 * **Modular Scenes** — configurable robot and object environments
 
-## 🧠 Control Architecture
+## Control Architecture
 
 ```text id="n7vuj7"
 Task Specification
@@ -49,7 +49,7 @@ Manipulation Outcome
 
 The separation between task-space objectives, robot control, and physics simulation provides a foundation for extending the system toward learning-based and adaptive manipulation.
 
-## 🤖 Agentic Replication & Evaluation
+## Agentic Replication & Evaluation
 
 This repository also serves as a **reproducibility testbed for agent-generated robotics implementations**.
 
@@ -73,7 +73,7 @@ The original implementation is first debugged and evaluated to establish a worki
 
 This creates a practical benchmark for evaluating whether an agent can reproduce not only the source structure, but also the **functional and behavioral properties of a robotics system**.
 
-## 🚀 Run
+## Run
 
 ```bash id="v0s3ps"
 git clone https://github.com/ayulikhar/pick-place-simulation.git
@@ -94,7 +94,7 @@ Run cube stacking:
 python stack_cubes.py
 ```
 
-## 🔭 Research Directions
+## Research Directions
 
 * Agentic code replication and evaluation
 * Collision-aware motion planning
@@ -105,7 +105,7 @@ python stack_cubes.py
 * Vision-based manipulation
 * Domain randomization and sim-to-real
 
-## 🛠️ Stack
+## Stack
 
 **Python · MuJoCo · MJCF · NumPy · Franka Panda**
 
